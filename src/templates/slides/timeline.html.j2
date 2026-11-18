@@ -1,0 +1,59 @@
+{% extends "base.html.j2" %}
+{% block style %}
+.slide {
+  background: var(--surface, #f8fafc); padding: 7vh var(--grid-margin, 6vw);
+  display: flex; flex-direction: column;
+}
+.title {
+  font-size: var(--type-h1, clamp(2rem, 3.6vw, 3.4rem)); font-weight: 800;
+  color: var(--primary, #0B1F3A); margin-bottom: 6vh;
+  text-wrap: balance; overflow-wrap: anywhere;
+}
+.timeline {
+  flex: 1; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr;
+  gap: var(--grid-gutter, 2vw); align-content: center;
+}
+.beat {
+  position: relative; display: flex; flex-direction: column; align-items: flex-start;
+  padding-top: 8vh;
+}
+/* Connecting rail runs through the node centre, between adjacent beats. */
+.beat::before {
+  content: ""; position: absolute; top: 4vh; left: 0; right: calc(-1 * var(--grid-gutter, 2vw));
+  height: 4px; background: var(--accent, #F26B3A); opacity: 0.35;
+}
+.beat:last-child::before { right: 0; }
+.marker {
+  position: absolute; top: 0; left: 0; z-index: 1;
+  min-width: 8vh; height: 8vh; padding: 0 1.4vw;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 999px; background: var(--accent, #F26B3A); color: var(--accent-on, #fff);
+  font-weight: 800; font-size: var(--type-caption, clamp(1rem, 1.4vw, 1.4rem));
+  text-wrap: balance; overflow-wrap: anywhere; text-align: center; line-height: 1.1;
+}
+.beat .label {
+  font-size: var(--type-h2, clamp(1.4rem, 2.2vw, 2rem)); font-weight: 700;
+  color: var(--on-surface, #101418); text-wrap: balance; overflow-wrap: anywhere;
+}
+.beat .description {
+  margin-top: 1.4vh; font-size: var(--type-caption, clamp(1rem, 1.4vw, 1.4rem));
+  color: var(--on-surface-muted, #57647a); line-height: 1.35;
+  text-wrap: balance; overflow-wrap: anywhere;
+}
+{% endblock %}
+{% block content %}
+<div class="slide">
+  <div class="title">{{ title }}</div>
+  {% if beats %}
+  <div class="timeline">
+    {% for b in beats %}
+    <div class="beat">
+      {% if b.marker %}<span class="marker">{{ b.marker }}</span>{% endif %}
+      {% if b.label %}<div class="label">{{ b.label }}</div>{% endif %}
+      {% if b.description %}<div class="description">{{ b.description }}</div>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,62 @@
+# Ruff config lives here (NOT pyproject.toml) on purpose: this heavy image's
+# Dockerfile does `COPY pyproject.toml uv.lock` before `uv sync`, so ANY edit to
+# pyproject.toml busts the dependency-install cache layer and forces a full
+# (multi-GB) reinstall. Keeping ruff config in ruff.toml leaves pyproject.toml
+# byte-identical to main, so the dep layer cache-hits and the build stays fast.
+# ruff.toml is never COPYed into the image (dev-only). See w2v typing guardrail.
+
+line-length = 100
+target-version = "py314"
+
+# ruff 0.16 formats Python inside Markdown fences; 0.15 did not. The Markdown
+# in this repo is dated design/architecture record (SERVICE_ARCHITECTURE.md,
+# OPERATION_ID_PLAN.md, ...), not executable source — reflowing its illustrative
+# snippets rewrites a historical document for no benefit. Keep them out.
+extend-exclude = ["*.md"]
+
+[lint]
+select = [
+    "E", "F", "I", "N", "W", "UP", "ANN", "B", "BLE", "A", "S", "C901",
+    "RUF", "RET", "SIM", "ASYNC", "PTH", "TID251",
+]
+ignore = ["E501", "B008" ]
+
+# uuid7 is the id standard (stdlib, py3.14). TID251 bans `uuid4` in production
+# code via ruff — enforced in CI (`ruff check .`), not only local pre-commit.
+[lint.flake8-tidy-imports.banned-api]
+"uuid.uuid4".msg = "uuid7 is the w2v id standard — use uuid.uuid7() (stdlib, py3.14)."
+
+[lint.per-file-ignores]
+# Migrations now carry their DDL as pinned LITERAL era-correct SQL rather than
+# rendering it from live code (see 0003_rls / 0004_reaper_fns docstrings: a
+# migration that renders from live modules breaks fresh-database replay at the
+# old revision). That DDL is built from module-level constants and table names,
+# never from user input — S608's string-SQL heuristic is a false positive here,
+# same posture already granted to rls_policies.py / reaper_sql.py below.
+"src/database/migrations/*" = ["I001", "ANN", "S608"]
+# RLS policy DDL is built from trusted module-level constants (the GUC is a fixed
+# SQL expression, never user input) — S608's string-SQL heuristic is a false positive.
+"src/database/rls_policies.py" = ["S608"]
+# Reaper resolver DDL is built from trusted module-level constants over fixed column
+# names (no user input ever reaches it) — S608's string-SQL heuristic is a false positive.
+"src/database/reaper_sql.py" = ["S608"]
+"tests/**/*.py" = ["S101", "S104", "S105", "S106", "S107", "S108", "S608", "ANN", "PTH", "ASYNC230", "ASYNC240", "TID251"]
+# Example scripts manipulate pptx XML internals; broad exception handling is intentional
+"examples/**/*.py" = ["BLE001", "S110", "C901", "ANN", "PTH", "SIM105"]
+
+# ── ANN401 ratchet (see [tool.ruff.lint].ignore note) ─────────────────────────
+# These files still carry `Any` in a function signature. Do NOT add to this list.
+# When you type a file's seam with pydantic models, DELETE its line here — that
+# re-enables ANN401 for the file and locks the win in. Target: empty.
+"src/cache/cache_keys.py" = ["ANN401"]
+"src/services/browser_pool.py" = ["ANN401"]
+"src/services/content_shaper.py" = ["ANN401"]
+"src/services/deck_builder.py" = ["ANN401"]
+"src/services/deck_reaper.py" = ["ANN401"]
+"src/services/design_helpers.py" = ["ANN401"]
+"src/services/html_slide_renderer.py" = ["ANN401"]
+"src/services/image_layout.py" = ["ANN401"]
+"src/services/template_renderer.py" = ["ANN401"]
+"src/services/templates/base.py" = ["ANN401"]
+"src/services/templates/two_up.py" = ["ANN401"]
+

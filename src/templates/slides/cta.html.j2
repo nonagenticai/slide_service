@@ -1,0 +1,42 @@
+{% extends "base.html.j2" %}
+{% block style %}
+.slide { background: var(--primary); display: flex; align-items: center; justify-content: center; text-align: center; }
+.accent-circle {
+  position: absolute; top: -8vh; right: -6vw; width: 30vw; height: 30vw;
+  border-radius: 50%; background: var(--accent); opacity: 0.18;
+}
+.body { width: 100%; min-width: 0; padding: 0 12vw; max-width: none; z-index: 1; }
+.eyebrow {
+  font-size: var(--type-kicker, 1.5rem); font-weight: 600; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--secondary); margin-bottom: 3vh;
+}
+.title {
+  font-size: var(--type-display, clamp(2.6rem, 6vw, 6rem)); line-height: 1.05;
+  font-weight: 800; color: #fff; text-wrap: balance;
+}
+.body-text {
+  margin-top: 3vh; font-size: var(--type-body, clamp(1.3rem, 2.2vw, 2.2rem)); line-height: 1.4;
+  color: rgba(255, 255, 255, 0.82); text-wrap: pretty;
+}
+.cta-button {
+  display: inline-block; margin-top: 5vh; padding: 1.1rem 2.6rem; border-radius: 999px;
+  background: #fff; color: var(--primary); font-size: clamp(1.2rem, 1.8vw, 1.8rem); font-weight: 700;
+}
+/* overflow-wrap: anywhere is the fix for the mid-word URL break the PIL path produced. */
+.cta-url {
+  margin-top: 4vh; font-size: clamp(1.3rem, 2.1vw, 2.1rem); font-weight: 600;
+  color: var(--secondary); overflow-wrap: anywhere; word-break: break-word;
+}
+{% endblock %}
+{% block content %}
+<div class="slide">
+  <div class="accent-circle"></div>
+  <div class="body">
+    {% if eyebrow %}<div class="eyebrow">{{ eyebrow }}</div>{% endif %}
+    <div class="title">{{ title }}</div>
+    {% if body %}<div class="body-text">{{ body }}</div>{% endif %}
+    {% if cta_text %}<div class="cta-button">{{ cta_text }}</div>{% endif %}
+    {% if cta_url %}<div class="cta-url">{{ cta_url }}</div>{% endif %}
+  </div>
+</div>
+{% endblock %}

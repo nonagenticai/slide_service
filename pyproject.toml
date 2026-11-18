@@ -1,0 +1,166 @@
+[project]
+license = "Apache-2.0"
+name = "slide-service"
+version = "0.1.0"
+description = "Presentation deck generation microservice for branded PowerPoint decks and slide manifests"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "fastapi[all]>=0.135.0",
+
+    "uvicorn[standard]>=0.41.0",
+
+    "psycopg[binary,pool]>=3.3.0",
+
+    "sqlalchemy[asyncio]>=2.0.48",
+
+    "pydantic>=2.12.0",
+
+    "pydantic-settings>=2.14.2",  # GHSA-4xgf-cpjx-pc3j fixed in 2.14.2
+
+    "python-dotenv>=1.2.0",
+
+    "redis>=7.3.0",
+
+    "alembic>=1.18.0",
+
+    "httpx>=0.28.0",
+
+    "lxml>=6.1.0",  # CVE-2026-41066
+
+    "jinja2>=3.1.6",
+
+    "miniopy-async>=1.23.0",
+
+    "python-pptx>=1.0.2",
+
+    "playwright>=1.49.0",  # headless Chromium for HTML slide-preview rendering
+
+    "w2v-common>=0.75.0",  # auth.entitlement (LICENSE_GATE)
+
+    # --- Security floors on transitive dependencies ---
+    # Neither package is imported by this service directly; both arrive as
+    # transitives (aiohttp via miniopy-async, cryptography via pyjwt and
+    # w2v-common). The lock was already moved to safe versions fleet-wide, but
+    # a lock is a point-in-time resolution: the next unrelated `uv lock` is
+    # free to walk an undeclared transitive back DOWN, silently, with green CI.
+    # The declared floor is the only thing that binds it. Regression-tested by
+    # tests/unit/test_security_floors.py. Precedent: analysis_service #175/#176.
+    #
+    # aiohttp 3.14.1 was flagged by CVE-2026-59881 + CVE-2026-69243 (fixed in
+    # 3.14.2) and CVE-2026-69244 (fixed in 3.14.3); 3.14.3 was then flagged by CVE-2026-111063,
+    # CVE-2026-111064 + GHSA-2g87-pp6c-29x5 (fixed in 3.14.4).
+    "aiohttp>=3.14.4",
+    # cryptography: CVE-2026-69247 (GHSA-g6cj-pr64-35w5) was introduced in
+    # 44.0.0 and fixed in 50.0.0, so the previously-locked 49.0.0 was affected.
+    "cryptography>=50.0.0",
+]
+
+[project.scripts]
+slide-service = "src.asgi:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.uv]
+override-dependencies = [
+    # miniopy-async (1.23.5, the LATEST) caps the CA-certificate bundle:
+    #   certifi>=2025.1.31,<2026.0.0
+    # That is lazy upper-bounding, not a real incompatibility -- certifi's entire
+    # public API is where()/contents() and has been stable for years, while the
+    # package's whole purpose is to ship CURRENT roots. Left alone the cap pins
+    # every MinIO-using repo in this fleet to a trust store from Nov 2025, and no
+    # relock cadence can move it (verified by making uv name the constraint).
+    #
+    # NOT overriding miniopy-async's argon2-cffi<24.0.0 alongside it: that is a
+    # MAJOR bump with real API surface, so it needs its own testing rather than
+    # riding along with a data-only package.
+    "certifi>=2026.7.22",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.0",
+
+    "pytest-asyncio>=1.3.0",
+
+    "pytest-cov>=7.0.0",
+
+    "pytest-timeout>=2.4.0",
+
+    "pytest-mock>=3.15.0",
+
+    "httpx>=0.28.0",
+    "ruff>=0.16.5",
+
+    "ty>=0.0.75",
+
+    "pip-audit>=2.10.0",
+    # pip is a transitive dep of pip-audit (pip-audit -> pip-api -> pip).
+    # Explicit floor: pip < 26.2 is vulnerable to PYSEC-2026-3721.
+    "pip>=26.2",
+
+    "detect-secrets>=1.5.0",
+    "bandit>=1.9.4",
+    "pre-commit>=4.5.0",
+
+    "fakeredis>=2.34.0",
+
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py314"
+
+[tool.ruff.lint]
+select = [
+    "E", "F", "I", "N", "W", "UP", "ANN", "B", "BLE", "A", "S", "C901",
+    "RUF", "RET", "SIM", "ASYNC", "PTH",
+]
+ignore = ["E501", "B008", "ANN401"]
+
+[tool.ruff.lint.per-file-ignores]
+"src/database/migrations/*" = ["I001", "ANN"]
+# RLS policy DDL is built from trusted module-level constants (the GUC is a fixed
+# SQL expression, never user input) — S608's string-SQL heuristic is a false positive.
+"src/database/rls_policies.py" = ["S608"]
+# Reaper resolver DDL is built from trusted module-level constants over fixed column
+# names (no user input ever reaches it) — S608's string-SQL heuristic is a false positive.
+"src/database/reaper_sql.py" = ["S608"]
+"tests/**/*.py" = ["S101", "S104", "S105", "S106", "S107", "S108", "S608", "ANN", "PTH", "ASYNC230", "ASYNC240"]
+# Example scripts manipulate pptx XML internals; broad exception handling is intentional
+"examples/**/*.py" = ["BLE001", "S110", "C901", "ANN", "PTH", "SIM105"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+pythonpath = ["."]
+markers = [
+    "unit: unit tests",
+    "integration: integration tests",
+]
+
+[tool.coverage.report]
+fail_under = 80
+
+[tool.ty.environment]
+python-version = "3.14"
+
+[tool.ty.rules]
+import-not-found = "error"
+unresolved-reference = "error"
+missing-attribute = "error"
+possibly-unresolved-reference = "error"
+possibly-missing-attribute = "error"
+missing-argument = "error"
+invalid-argument-type = "error"
+invalid-explicit-return = "error"
+
+[tool.uv.sources]
+# The published source tree resolves its shared library from the public
+# repository at the release tag; the private index is not reachable here.
+w2v-common = { git = "https://github.com/nonagenticai/w2v_common", tag = "v0.115.4" }

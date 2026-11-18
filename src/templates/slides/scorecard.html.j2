@@ -1,0 +1,45 @@
+{% extends "base.html.j2" %}
+{% block style %}
+.slide {
+  background: var(--surface, #f8fafc); padding: 7vh var(--grid-margin, 6vw);
+  display: flex; flex-direction: column;
+}
+.title {
+  font-size: var(--type-h1, clamp(2rem, 3.6vw, 3.4rem)); font-weight: 800; color: var(--primary);
+  margin-bottom: 5vh; text-wrap: balance;
+}
+.grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--grid-gutter, 2vw);
+  flex: 1; align-content: start;
+}
+.card {
+  background: var(--surface-2, #fff); border: 2px solid #e3e8ef; border-radius: 20px;
+  padding: 2.4vh 2vw; display: flex; flex-direction: column; justify-content: center;
+}
+.card .label {
+  font-size: var(--type-caption, clamp(1rem, 1.4vw, 1.4rem));
+  color: var(--on-surface-muted, #57647a); font-weight: 500;
+}
+.card .value {
+  margin-top: 1.2vh; font-size: var(--type-h2, clamp(1.8rem, 3.2vw, 3rem)); font-weight: 800;
+  color: var(--primary); overflow-wrap: anywhere;
+}
+.footer {
+  margin-top: auto; font-size: var(--type-caption, clamp(1rem, 1.4vw, 1.4rem));
+  color: var(--on-surface-muted, #57647a); line-height: 1.4;
+}
+{% endblock %}
+{% block content %}
+<div class="slide">
+  <div class="title">{{ title }}</div>
+  <div class="grid">
+    {% for m in metrics %}
+    <div class="card">
+      <div class="label">{{ m.get("label") or "Metric" }}</div>
+      <div class="value">{{ m.get("value") or m.get("trend") or "—" }}</div>
+    </div>
+    {% endfor %}
+  </div>
+  {% if footer %}<div class="footer">{{ footer }}</div>{% endif %}
+</div>
+{% endblock %}

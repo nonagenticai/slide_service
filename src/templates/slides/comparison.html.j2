@@ -1,0 +1,59 @@
+{% extends "base.html.j2" %}
+{% block style %}
+.slide {
+  background: var(--surface, #f8fafc); padding: 6vh var(--grid-margin, 5vw);
+  display: flex; flex-direction: column;
+}
+.title {
+  font-size: var(--type-h1, clamp(2rem, 3.6vw, 3.4rem)); font-weight: 800; color: var(--primary);
+  margin-bottom: 3vh; text-wrap: balance;
+}
+.cols {
+  display: grid; grid-template-columns: 1fr 1fr; gap: var(--grid-gutter, 3vw);
+  flex: 1; min-height: 0;
+}
+.col { display: flex; flex-direction: column; min-height: 0; }
+.col .label {
+  font-size: var(--type-h2, clamp(1.1rem, 1.6vw, 1.6rem)); font-weight: 700; margin-bottom: 1.5vh;
+}
+.col.before .label { color: var(--primary); }
+.col.after .label { color: var(--secondary); }
+.frame {
+  flex: 1; min-height: 0; border-radius: 18px; overflow: hidden; background: #e6ecf3;
+  border: 2px solid #dae2ea; display: flex; align-items: center; justify-content: center;
+}
+.frame.full-bleed { border: none; }
+.frame img { width: 100%; height: 100%; }
+.placeholder {
+  color: var(--on-surface-muted, #72808c); font-size: 1.3rem; text-align: center; padding: 2rem;
+}
+.caption {
+  margin-top: 2.5vh; font-size: var(--type-caption, clamp(1rem, 1.4vw, 1.4rem));
+  color: var(--on-surface-muted, #57647a); line-height: 1.4;
+}
+{% endblock %}
+{% block content %}
+{% macro panel(img, alt) -%}
+  {% if img and img.has_image %}
+  <div class="frame{% if img.full_bleed %} full-bleed{% endif %}">
+    <img src="{{ img.data_uri }}" style="object-fit: {{ img.object_fit }};" alt="{{ alt }}">
+  </div>
+  {% else %}
+  <div class="frame"><div class="placeholder">{{ alt }} unavailable</div></div>
+  {% endif %}
+{%- endmacro %}
+<div class="slide">
+  <div class="title">{{ title }}</div>
+  <div class="cols">
+    <div class="col before">
+      <div class="label">{{ before_label }}</div>
+      {{ panel(before_image, before_label) }}
+    </div>
+    <div class="col after">
+      <div class="label">{{ after_label }}</div>
+      {{ panel(after_image, after_label) }}
+    </div>
+  </div>
+  {% if caption %}<div class="caption">{{ caption }}</div>{% endif %}
+</div>
+{% endblock %}

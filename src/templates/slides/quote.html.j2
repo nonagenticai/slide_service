@@ -1,0 +1,40 @@
+{% extends "base.html.j2" %}
+{% block style %}
+.slide {
+  background: var(--surface, #f8fafc);
+  padding: var(--grid-margin, 6vw);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center;
+}
+.mark {
+  font-family: var(--font-display);
+  font-size: clamp(6rem, 14vw, 13rem); line-height: 0.7; font-weight: 800;
+  color: var(--accent, #F26B3A); margin-bottom: 1vh; user-select: none;
+}
+.title {
+  font-size: var(--type-display, clamp(2.2rem, 4.6vw, 4.4rem)); line-height: 1.12; font-weight: 700;
+  color: var(--on-surface, #0B1F3A); max-width: 82vw;
+  text-wrap: balance; overflow-wrap: anywhere;
+}
+.rule {
+  width: 80px; height: 4px; border-radius: 2px;
+  background: var(--accent, #F26B3A); margin: 4.5vh 0 3.5vh;
+}
+.attribution {
+  font-size: var(--type-body, clamp(1.2rem, 1.8vw, 1.8rem)); font-weight: 600;
+  color: var(--on-surface-muted, #57647a); text-wrap: balance; overflow-wrap: anywhere;
+}
+.role {
+  margin-top: 1vh; font-size: var(--type-kicker, 1.4rem); font-weight: 400;
+  color: var(--on-surface-muted, #57647a); text-wrap: balance; overflow-wrap: anywhere;
+}
+{% endblock %}
+{% block content %}
+<div class="slide">
+  {% if quote %}<div class="mark" aria-hidden="true">&ldquo;</div>{% endif %}
+  {% if quote %}<div class="title">{{ quote }}</div>{% endif %}
+  {% if attribution or role %}<div class="rule"></div>{% endif %}
+  {% if attribution %}<div class="attribution">{{ attribution }}</div>{% endif %}
+  {% if role %}<div class="role">{{ role }}</div>{% endif %}
+</div>
+{% endblock %}
