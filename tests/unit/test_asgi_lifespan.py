@@ -241,8 +241,7 @@ def test_deck_status_poll_is_routed(monkeypatch: pytest.MonkeyPatch) -> None:
 # the places this change exists to keep secrets out of.
 _FAKE_PASSWORD = "not-a-real-password-xyzzy"  # pragma: allowlist secret
 _FAKE_DSN = (
-    f"postgresql+psycopg://slide_app:{_FAKE_PASSWORD}"
-    "@pgbouncer.pgbouncer:6432/slide_service"
+    f"postgresql+psycopg://slide_app:{_FAKE_PASSWORD}@pgbouncer.pgbouncer:6432/slide_service"
 )
 
 
